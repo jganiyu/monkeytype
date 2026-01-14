@@ -122,6 +122,7 @@ function getPlugins({
           },
         ],
         background_color: "#323437",
+        display_override: ["window-controls-overlay"],
         display: "standalone",
         theme_color: "#323437",
       },
