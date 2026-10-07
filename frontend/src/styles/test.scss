@@ -1504,6 +1504,16 @@ body.stenoPractice {
         border: none;
         border-radius: var(--roundness);
         padding: 0.25rem 0.4rem;
+        -moz-appearance: auto;
+        -webkit-appearance: auto;
+        appearance: auto;
+      }
+
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: auto;
+        appearance: auto;
+        opacity: 1;
       }
     }
   }

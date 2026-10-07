@@ -119,6 +119,17 @@ function applyPercent(entries: string[], percent: number): string[] {
   );
 }
 
+function getPercentFromInput(key: StenoCategoryKey, fallback: number): number {
+  const value = document.querySelector<HTMLInputElement>(
+    `#stenoControls [data-percent="${key}"]`,
+  )?.value;
+  if (value === undefined || value === "") return fallback;
+
+  const percent = Number.parseInt(value, 10);
+  if (Number.isNaN(percent)) return fallback;
+  return Math.max(0, Math.min(100, percent));
+}
+
 function buildEntries(settings: Settings): string[] {
   const categoryStarts = new Map<number, string>();
   let nextIndex = 0;
@@ -222,11 +233,7 @@ function saveFromUi(): void {
         document.querySelector<HTMLInputElement>(
           `#stenoControls [data-randomize="${key}"]`,
         )?.checked ?? false,
-      percent: parseInt(
-        document.querySelector<HTMLInputElement>(
-          `#stenoControls [data-percent="${key}"]`,
-        )?.value ?? "100",
-      ),
+      percent: getPercentFromInput(key, settings.categories[key].percent),
       text:
         document.querySelector<HTMLTextAreaElement>(
           `#stenoContent [data-content="${key}"]`,
@@ -310,6 +317,17 @@ function bind(): void {
     if (!target.closest("#stenoControls, #stenoContent")) return;
     saveFromUi();
   });
+
+  document.addEventListener(
+    "blur",
+    (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLInputElement)) return;
+      if (!target.matches("#stenoControls [data-percent]")) return;
+      syncControlsFromSettings(readSettings());
+    },
+    true,
+  );
 }
 
 export function sync(): void {
