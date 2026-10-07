@@ -17,8 +17,21 @@ document.addEventListener("keydown", (e) => {
   if (PageTransition.get()) return;
   if (e.key === undefined) return;
 
+  const isInteractiveElement =
+    document.activeElement?.tagName === "INPUT" ||
+    document.activeElement?.tagName === "TEXTAREA" ||
+    document.activeElement?.tagName === "SELECT" ||
+    document.activeElement?.tagName === "BUTTON" ||
+    document.activeElement?.classList.contains("button") === true ||
+    document.activeElement?.classList.contains("textButton") === true;
+
   const pageTestActive: boolean = getActivePage() === "test";
-  if (pageTestActive && !TestState.resultVisible && !isInputElementFocused()) {
+  if (
+    pageTestActive &&
+    !TestState.resultVisible &&
+    !isInputElementFocused() &&
+    !isInteractiveElement
+  ) {
     const popupVisible: boolean = Misc.isAnyPopupVisible();
     // this is nested because isAnyPopupVisible is a bit expensive
     // and we don't want to call it during the test
@@ -56,14 +69,6 @@ document.addEventListener("keydown", (e) => {
   }
 
   if (!isInputElementFocused()) {
-    const isInteractiveElement =
-      document.activeElement?.tagName === "INPUT" ||
-      document.activeElement?.tagName === "TEXTAREA" ||
-      document.activeElement?.tagName === "SELECT" ||
-      document.activeElement?.tagName === "BUTTON" ||
-      document.activeElement?.classList.contains("button") === true ||
-      document.activeElement?.classList.contains("textButton") === true;
-
     if (
       (e.key === "Tab" &&
         Config.quickRestart === "tab" &&
