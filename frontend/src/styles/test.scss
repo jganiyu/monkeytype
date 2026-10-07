@@ -1456,6 +1456,11 @@ body.stenoPractice {
       outline: none;
     }
 
+    .contentActions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
     button {
       justify-self: start;
       color: var(--sub-color);
@@ -1829,6 +1834,18 @@ body.stenoPractice {
 
   header .top {
     display: none !important;
+  }
+
+  #result:not(.hidden) {
+    height: calc(100vh - 8rem);
+    align-content: center;
+    overflow-y: auto;
+    padding-top: 0;
+    padding-bottom: 0;
+
+    .wrapper {
+      align-self: center;
+    }
   }
 }
 

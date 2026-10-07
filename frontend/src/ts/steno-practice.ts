@@ -3,6 +3,7 @@ import * as CustomText from "./test/custom-text";
 import * as TestLogic from "./test/test-logic";
 import * as TestState from "./test/test-state";
 import * as StenoState from "./steno-state";
+import * as Commandline from "./commandline/commandline";
 import { onDOMReady } from "./utils/dom";
 export { isEnabled } from "./steno-state";
 
@@ -336,6 +337,10 @@ function focusSessionRestart(event: KeyboardEvent): void {
   document.querySelector<HTMLButtonElement>("#stenoRestart")?.focus();
 }
 
+function showThemeSelector(): void {
+  Commandline.show({ subgroupOverride: "themes" });
+}
+
 function bind(): void {
   if (document.querySelector("#stenoStart") === null) {
     setTimeout(bind, 50);
@@ -359,6 +364,12 @@ function bind(): void {
   restartButton?.addEventListener("pointerdown", restartSession);
   restartButton?.addEventListener("mousedown", restartSession);
   restartButton?.addEventListener("click", restartSession);
+
+  document.querySelectorAll(".stenoTheme").forEach((button) => {
+    button.addEventListener("pointerdown", showThemeSelector);
+    button.addEventListener("mousedown", showThemeSelector);
+    button.addEventListener("click", showThemeSelector);
+  });
 
   const contentButton = document.querySelector("#stenoBackToContent");
   contentButton?.addEventListener("pointerdown", returnToContent);
