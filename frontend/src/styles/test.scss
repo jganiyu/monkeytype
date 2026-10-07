@@ -1490,6 +1490,11 @@ body.stenoPractice {
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 0.35rem 0.75rem;
+      transition: opacity 0.12s ease;
+
+      &.empty {
+        opacity: 0.38;
+      }
 
       .name {
         grid-column: 1 / -1;

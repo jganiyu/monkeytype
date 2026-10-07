@@ -218,6 +218,9 @@ function updateCounts(settings: Settings): void {
       `#stenoControls [data-count="${key}"]`,
     );
     if (count) count.textContent = `${selected} / ${total}`;
+    document
+      .querySelector<HTMLElement>(`#stenoControls [data-category="${key}"]`)
+      ?.classList.toggle("empty", total === 0);
   }
 }
 
