@@ -314,10 +314,23 @@ function startSession(): void {
   }, 250);
 }
 
+function restartSession(): void {
+  TestLogic.restart({ noAnim: true });
+}
+
 function returnToContent(): void {
   showSetup();
   setControlsFrozen(false);
   TestLogic.restart({ noAnim: true });
+}
+
+function focusSessionRestart(event: KeyboardEvent): void {
+  if (!document.body.classList.contains("stenoSession")) return;
+  if (event.key !== "Tab" || event.shiftKey) return;
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  document.querySelector<HTMLButtonElement>("#stenoRestart")?.focus();
 }
 
 function bind(): void {
@@ -339,10 +352,19 @@ function bind(): void {
   startButton?.addEventListener("mousedown", startSession);
   startButton?.addEventListener("click", startSession);
 
+  const restartButton = document.querySelector("#stenoRestart");
+  restartButton?.addEventListener("pointerdown", restartSession);
+  restartButton?.addEventListener("mousedown", restartSession);
+  restartButton?.addEventListener("click", restartSession);
+
   const contentButton = document.querySelector("#stenoBackToContent");
   contentButton?.addEventListener("pointerdown", returnToContent);
   contentButton?.addEventListener("mousedown", returnToContent);
   contentButton?.addEventListener("click", returnToContent);
+
+  document
+    .querySelector<HTMLTextAreaElement>("#wordsInput")
+    ?.addEventListener("keydown", focusSessionRestart, { capture: true });
 
   document.addEventListener("input", (event) => {
     const target = event.target;
