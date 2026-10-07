@@ -6,7 +6,6 @@ import * as ConfigEvent from "./observables/config-event";
 import { debounce, throttle } from "throttle-debounce";
 import * as TestUI from "./test/test-ui";
 import { getActivePage } from "./signals/core";
-import { isDevEnvironment } from "./utils/misc";
 import { isCustomTextLong } from "./states/custom-text-name";
 import { canQuickRestart } from "./utils/quick-restart";
 import { FontName } from "@monkeytype/schemas/fonts";
@@ -56,16 +55,6 @@ function updateKeytips(): void {
         : `<kbd>${Config.quickRestart}</kbd>`
     } - restart test<br>
     <kbd>${commandKey}</kbd> or <kbd>${modifierKey}</kbd> + <kbd>shift</kbd> + <kbd>p</kbd> - command line`);
-}
-
-if (isDevEnvironment()) {
-  qs("header #logo .top")?.setText("localhost");
-  qs("head title")?.setText(
-    (qs("head title")?.native.textContent ?? "") + " (localhost)",
-  );
-  qs("body")?.appendHtml(
-    `<div class="devIndicator tl">local</div><div class="devIndicator br">local</div>`,
-  );
 }
 
 window.addEventListener("beforeunload", (event) => {

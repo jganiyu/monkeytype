@@ -58,6 +58,7 @@ import * as ModesNotice from "../elements/modes-notice";
 import * as Last10Average from "../elements/last-10-average";
 import * as MemoryFunboxTimer from "./funbox/memory-funbox-timer";
 import { qsr } from "../utils/dom";
+import * as StenoState from "../steno-state";
 
 export const updateHintsPositionDebounced = Misc.debounceUntilResolved(
   updateHintsPosition,
@@ -75,9 +76,80 @@ export let activeWordHeight = 0;
 export let lineTransition = false;
 export let currentTestLine = 0;
 export let resultCalculating = false;
+let stenoColumnOffset = 0;
 
 export function setResultCalculating(val: boolean): void {
   resultCalculating = val;
+}
+
+function syncStenoControls(): void {
+  if (!StenoState.isEnabled()) return;
+  document
+    .querySelectorAll<
+      HTMLInputElement | HTMLTextAreaElement | HTMLButtonElement
+    >(
+      "#stenoControls input, #stenoControls button, #stenoContent textarea, #stenoContent button",
+    )
+    .forEach((control) => {
+      control.disabled = TestState.isActive;
+    });
+  document
+    .querySelector("#stenoControls")
+    ?.classList.toggle("frozen", TestState.isActive);
+}
+
+function centerStenoActiveEntry(): void {
+  if (!StenoState.isEnabled()) return;
+  const activeWord = getActiveWordElement();
+  if (!activeWord) return;
+
+  const wrapperCenter = wordsWrapperEl.clientHeight / 2;
+  const activeCenter = activeWord.offsetTop + activeWord.offsetHeight / 2;
+  stenoColumnOffset = Math.max(0, activeCenter - wrapperCenter);
+  wordsWrapperEl.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  wordsEl.style.transform = `translateY(${-stenoColumnOffset}px)`;
+}
+
+function updateStenoInputAndCaretPosition(): void {
+  const activeWord = getActiveWordElement();
+  const input = getInputElement();
+  const caret = document.querySelector<HTMLElement>("#caret");
+  if (activeWord === null || input === null || caret === null) return;
+
+  const top =
+    activeWord.offsetTop -
+    stenoColumnOffset +
+    activeWord.offsetHeight / 2 -
+    input.offsetHeight / 2;
+  const left = activeWord.offsetLeft;
+
+  input.style.top = `${top}px`;
+  input.style.left = `${left}px`;
+  input.style.width = `${Math.max(activeWord.offsetWidth, 16)}px`;
+  input.style.maxWidth = "";
+
+  caret.style.top = `${activeWord.offsetTop - stenoColumnOffset}px`;
+  caret.style.left = `${left}px`;
+  caret.style.marginTop = "0px";
+  caret.style.marginLeft = "0px";
+
+  const counter = document.querySelector<HTMLElement>(
+    "#liveStatsTextTop .wrapper",
+  );
+  const counterContainer =
+    document.querySelector<HTMLElement>("#liveStatsTextTop");
+  if (counter !== null && counterContainer !== null) {
+    counter.textContent = `${TestState.activeWordIndex + 1}/${StenoState.getEntryCount()}`;
+    counter.style.left = `${
+      activeWord.getBoundingClientRect().left -
+      counterContainer.getBoundingClientRect().left
+    }px`;
+  }
+}
+
+function updateStenoViewport(): void {
+  centerStenoActiveEntry();
+  updateStenoInputAndCaretPosition();
 }
 
 export function focusWords(force = false): void {
@@ -85,6 +157,10 @@ export function focusWords(force = false): void {
     blurInputElement();
   }
   focusInputElement(true);
+  if (StenoState.isEnabled()) {
+    updateStenoViewport();
+    return;
+  }
   if (TestState.isActive) {
     keepWordsInputInTheCenter(true);
   } else {
@@ -94,6 +170,8 @@ export function focusWords(force = false): void {
 }
 
 export function keepWordsInputInTheCenter(force = false): void {
+  if (StenoState.isEnabled()) return;
+
   const wordsInput = getInputElement();
   if (wordsInput === null || wordsWrapperEl === null) return;
 
@@ -160,6 +238,11 @@ export function updateActiveElement(
     activeWordTop = newActiveWord.offsetTop;
     activeWordHeight = newActiveWord.offsetHeight;
     console.log("activewordtopupdated");
+
+    if (StenoState.isEnabled()) {
+      updateStenoViewport();
+      return;
+    }
 
     updateWordsInputPosition();
 
@@ -361,7 +444,12 @@ async function updateHintsPosition(): Promise<void> {
 
 function buildWordHTML(word: string, wordIndex: number): string {
   let newlineafter = false;
-  let retval = `<div class='word' data-wordindex='${wordIndex}'>`;
+  let retval = "";
+  const stenoLabel = StenoState.getCategoryStartLabel(wordIndex);
+  if (stenoLabel !== undefined) {
+    retval += `<div class='stenoCategoryLabel'>${stenoLabel}</div>`;
+  }
+  retval += `<div class='word' data-wordindex='${wordIndex}'>`;
 
   const funbox = findSingleActiveFunboxWithFunction("getWordHtml");
   const chars = Strings.splitIntoCharacters(word);
@@ -464,7 +552,11 @@ function updateWordWrapperClasses(): void {
   updateWordsMargin();
   updateWordsInputPosition();
   void updateHintsPositionDebounced();
-  Caret.updatePosition();
+  if (StenoState.isEnabled()) {
+    updateStenoViewport();
+  } else {
+    Caret.updatePosition();
+  }
 
   if (!isInputElementFocused()) {
     OutOfFocus.show();
@@ -1694,7 +1786,11 @@ function afterAnyTestInput(
 
   Focus.set(true);
   Caret.stopAnimation();
-  Caret.updatePosition();
+  if (StenoState.isEnabled()) {
+    updateStenoViewport();
+  } else {
+    Caret.updatePosition();
+  }
 }
 
 export function afterTestTextInput(
@@ -1780,7 +1876,15 @@ export async function afterTestWordChange(
   updateActiveElement({
     direction,
   });
-  Caret.updatePosition();
+  if (StenoState.isEnabled()) {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        updateStenoViewport();
+      });
+    });
+  } else {
+    Caret.updatePosition();
+  }
 
   const lastBurst = TestInput.burstHistory[TestInput.burstHistory.length - 1];
   if (Numbers.isSafeNumber(lastBurst)) {
@@ -1811,6 +1915,7 @@ export async function afterTestWordChange(
 
 export function onTestStart(): void {
   Focus.set(true);
+  syncStenoControls();
   Monkey.show();
   TimerProgress.show();
   LiveSpeed.show();
@@ -1820,6 +1925,7 @@ export function onTestStart(): void {
 }
 
 export function onTestRestart(source: "testPage" | "resultPage"): void {
+  syncStenoControls();
   $("#result").addClass("hidden");
   $("#typingTest").css("opacity", 0).removeClass("hidden");
   getInputElement().style.left = "0";

@@ -6,6 +6,7 @@ import * as TestInput from "./test-input";
 import * as Time from "../states/time";
 import * as TestState from "./test-state";
 import * as ConfigEvent from "../observables/config-event";
+import * as StenoState from "../steno-state";
 import { applyReducedMotion } from "../utils/misc";
 import { requestDebouncedAnimationFrame } from "../utils/debounced-animation-frame";
 import { animate } from "animejs";
@@ -196,6 +197,10 @@ export function update(): void {
       Config.mode === "custom" ||
       Config.mode === "quote"
     ) {
+      if (StenoState.isEnabled()) {
+        textEl.innerHTML = `<div>${TestState.activeWordIndex + 1}/${StenoState.getEntryCount()}</div>`;
+        return;
+      }
       let outof = TestWords.words.length;
       if (Config.mode === "words") {
         outof = Config.words;

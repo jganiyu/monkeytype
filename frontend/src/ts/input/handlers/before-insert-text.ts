@@ -9,6 +9,7 @@ import { getInputElementValue } from "../input-element";
 import { isAwaitingNextWord } from "../state";
 import { shouldInsertSpaceCharacter } from "../helpers/validation";
 import * as SlowTimer from "../../states/slow-timer";
+import * as StenoState from "../../steno-state";
 
 /**
  * Handles logic before inserting text into the input element.
@@ -36,6 +37,10 @@ export function onBeforeInsertText(data: string): boolean {
     targetWord: TestWords.words.getCurrent(),
   });
 
+  if (StenoState.isEnabled() && dataIsSpace && inputValue === "") {
+    return true;
+  }
+
   //prevent space from being inserted if input is empty
   //allow if strict space is enabled
   if (
@@ -58,8 +63,11 @@ export function onBeforeInsertText(data: string): boolean {
   }
 
   // block input if the word is too long
-  const inputLimit =
-    Config.mode === "zen" ? 30 : TestWords.words.getCurrent().length + 20;
+  const inputLimit = StenoState.isEnabled()
+    ? Number.POSITIVE_INFINITY
+    : Config.mode === "zen"
+      ? 30
+      : TestWords.words.getCurrent().length + 20;
   const overLimit = TestInput.input.current.length >= inputLimit;
   if (overLimit && (shouldInsertSpaceAsCharacter === true || !dataIsSpace)) {
     console.error("Hitting word limit");
@@ -79,6 +87,7 @@ export function onBeforeInsertText(data: string): boolean {
     !Config.hideExtraLetters &&
     inputIsLongerThanOrEqualToWord &&
     (shouldInsertSpaceAsCharacter === true || !dataIsSpace) &&
+    !StenoState.isEnabled() &&
     Config.mode !== "zen"
   ) {
     // make sure to only check this when really necessary

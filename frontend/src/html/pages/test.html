@@ -96,6 +96,164 @@
       <i class="fas fa-fw fa-share"></i>
     </button>
   </div>
+  <div id="stenoSetupPage" class="full-width-padding">
+    <div id="stenoContent">
+      <div class="sectionTitle">custom content</div>
+      <div class="contentGrid">
+        <label>
+          <span>briefs</span>
+          <textarea data-content="briefs" spellcheck="false"></textarea>
+        </label>
+        <label>
+          <span>words</span>
+          <textarea data-content="words" spellcheck="false"></textarea>
+        </label>
+        <label>
+          <span>phrases</span>
+          <textarea data-content="phrases" spellcheck="false"></textarea>
+        </label>
+        <label>
+          <span>word sets</span>
+          <textarea data-content="wordSets" spellcheck="false"></textarea>
+        </label>
+        <label>
+          <span>numbers</span>
+          <textarea data-content="numbers" spellcheck="false"></textarea>
+        </label>
+        <label>
+          <span>times</span>
+          <textarea data-content="times" spellcheck="false"></textarea>
+        </label>
+        <label>
+          <span>dates</span>
+          <textarea data-content="dates" spellcheck="false"></textarea>
+        </label>
+      </div>
+      <button id="stenoStart">
+        <i class="fas fa-fw fa-play"></i>
+        start
+      </button>
+    </div>
+    <aside id="stenoControls" aria-label="Steno practice controls">
+      <label class="master">
+        <input id="stenoMasterRandomize" type="checkbox" />
+        <span>randomize all</span>
+      </label>
+      <div class="categoryControls">
+        <div class="categoryControl" data-category="briefs">
+          <div class="name">
+            briefs
+            <span data-count="briefs"></span>
+          </div>
+          <label>
+            <input data-enabled="briefs" type="checkbox" />
+            on
+          </label>
+          <label>
+            <input data-randomize="briefs" type="checkbox" />
+            random
+          </label>
+          <input data-percent="briefs" type="number" min="0" max="100" />
+        </div>
+        <div class="categoryControl" data-category="words">
+          <div class="name">
+            words
+            <span data-count="words"></span>
+          </div>
+          <label>
+            <input data-enabled="words" type="checkbox" />
+            on
+          </label>
+          <label>
+            <input data-randomize="words" type="checkbox" />
+            random
+          </label>
+          <input data-percent="words" type="number" min="0" max="100" />
+        </div>
+        <div class="categoryControl" data-category="phrases">
+          <div class="name">
+            phrases
+            <span data-count="phrases"></span>
+          </div>
+          <label>
+            <input data-enabled="phrases" type="checkbox" />
+            on
+          </label>
+          <label>
+            <input data-randomize="phrases" type="checkbox" />
+            random
+          </label>
+          <input data-percent="phrases" type="number" min="0" max="100" />
+        </div>
+        <div class="categoryControl" data-category="wordSets">
+          <div class="name">
+            word sets
+            <span data-count="wordSets"></span>
+          </div>
+          <label>
+            <input data-enabled="wordSets" type="checkbox" />
+            on
+          </label>
+          <label>
+            <input data-randomize="wordSets" type="checkbox" />
+            random
+          </label>
+          <input data-percent="wordSets" type="number" min="0" max="100" />
+        </div>
+        <div class="categoryControl" data-category="numbers">
+          <div class="name">
+            numbers
+            <span data-count="numbers"></span>
+          </div>
+          <label>
+            <input data-enabled="numbers" type="checkbox" />
+            on
+          </label>
+          <label>
+            <input data-randomize="numbers" type="checkbox" />
+            random
+          </label>
+          <input data-percent="numbers" type="number" min="0" max="100" />
+        </div>
+        <div class="categoryControl" data-category="times">
+          <div class="name">
+            times
+            <span data-count="times"></span>
+          </div>
+          <label>
+            <input data-enabled="times" type="checkbox" />
+            on
+          </label>
+          <label>
+            <input data-randomize="times" type="checkbox" />
+            random
+          </label>
+          <input data-percent="times" type="number" min="0" max="100" />
+        </div>
+        <div class="categoryControl" data-category="dates">
+          <div class="name">
+            dates
+            <span data-count="dates"></span>
+          </div>
+          <label>
+            <input data-enabled="dates" type="checkbox" />
+            on
+          </label>
+          <label>
+            <input data-randomize="dates" type="checkbox" />
+            random
+          </label>
+          <input data-percent="dates" type="number" min="0" max="100" />
+        </div>
+      </div>
+    </aside>
+  </div>
+  <div id="stenoSessionActions" class="full-width-padding">
+    <button id="stenoBackToContent">
+      <i class="fas fa-fw fa-edit"></i>
+      content
+    </button>
+  </div>
 
   <div id="mobileTestConfigButton">
     <button>

@@ -37,6 +37,7 @@ import {
   isCharCorrect,
   shouldInsertSpaceCharacter,
 } from "../helpers/validation";
+import * as StenoState from "../../steno-state";
 
 const charOverrides = new Map<string, string>([
   ["…", "..."],
@@ -152,8 +153,15 @@ export async function onInsertText(options: OnInsertTextParams): Promise<void> {
   const noSpaceForce =
     isFunboxActiveWithProperty("nospace") &&
     (testInput + data).length === TestWords.words.getCurrent().length;
+  const stenoCompletedEntry =
+    StenoState.isEnabled() &&
+    !charIsSpace &&
+    !charIsNewline &&
+    testInput + data === currentWord;
   const shouldGoToNextWord =
-    ((charIsSpace || charIsNewline) && !shouldInsertSpace) || noSpaceForce;
+    ((charIsSpace || charIsNewline) && !shouldInsertSpace) ||
+    noSpaceForce ||
+    stenoCompletedEntry;
 
   // update test input state
   if (!charIsSpace || shouldInsertSpace) {
@@ -218,7 +226,7 @@ export async function onInsertText(options: OnInsertTextParams): Promise<void> {
   if (shouldGoToNextWord) {
     const result = await goToNextWord({
       correctInsert: correct,
-      isCompositionEnding: isCompositionEnding === true,
+      isCompositionEnding: isCompositionEnding === true || stenoCompletedEntry,
       zenNewline: charIsNewline && Config.mode === "zen",
     });
     lastBurst = result.lastBurst;

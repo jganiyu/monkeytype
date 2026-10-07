@@ -104,8 +104,9 @@ function getPlugins({
       injectRegister: null,
       registerType: "autoUpdate",
       manifest: {
-        short_name: "Monkeytype",
-        name: "Monkeytype",
+        id: "/",
+        short_name: "Steno",
+        name: "Monkeytype Steno",
         start_url: "/",
         icons: [
           {

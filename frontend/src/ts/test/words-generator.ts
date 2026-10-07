@@ -26,6 +26,7 @@ import { WordGenError } from "../utils/word-gen-error";
 import * as Loader from "../elements/loader";
 import { PolyglotWordset } from "./funbox/funbox-functions";
 import { LanguageObject } from "@monkeytype/schemas/languages";
+import * as StenoState from "../steno-state";
 
 //pin implementation
 const random = Math.random;
@@ -878,7 +879,9 @@ export async function getNextWord(
 
     randomWord = getFunboxWord(randomWord, wordIndex, currentWordset);
 
-    currentSection = [...randomWord.split(" ")];
+    currentSection = StenoState.isEnabled()
+      ? [randomWord]
+      : [...randomWord.split(" ")];
     sectionHistory.push(randomWord);
     randomWord = currentSection.shift() as string;
     sectionIndex++;
@@ -894,7 +897,7 @@ export async function getNextWord(
     throw new WordGenError("Random word is empty");
   }
 
-  if (/ /g.test(randomWord)) {
+  if (!StenoState.isEnabled() && / /g.test(randomWord)) {
     throw new WordGenError("Random word contains spaces");
   }
 

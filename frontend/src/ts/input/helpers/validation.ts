@@ -1,5 +1,6 @@
 import Config from "../../config";
 import { isSpace } from "../../utils/strings";
+import * as StenoState from "../../steno-state";
 
 /**
  * Check if the input data is correct
@@ -62,6 +63,9 @@ export function shouldInsertSpaceCharacter(options: {
   }
   if (Config.mode === "zen") {
     return false;
+  }
+  if (StenoState.isEnabled()) {
+    return inputValue !== targetWord;
   }
   const correctSoFar = (targetWord + " ").startsWith(inputValue + " ");
   const stopOnErrorLetterAndIncorrect =

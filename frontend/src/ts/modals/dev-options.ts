@@ -102,17 +102,5 @@ const modal = new AnimatedModal({
 });
 
 export function appendButton(): void {
-  $("body").prepend(
-    `
-      <div id="devButtons">
-        <a class='button configureAPI' href='${envConfig.backendUrl}/configure/' target='_blank' aria-label="Configure API" data-balloon-pos="right"><i class="fas fa-fw fa-server"></i></a>
-        <button class='button showDevOptionsModal' aria-label="Dev options" data-balloon-pos="right"><i class="fas fa-fw fa-flask"></i></button>
-      <div>
-      `,
-  );
-  document
-    .querySelector("#devButtons .button.showDevOptionsModal")
-    ?.addEventListener("click", () => {
-      show();
-    });
+  document.querySelector("#devButtons")?.remove();
 }
