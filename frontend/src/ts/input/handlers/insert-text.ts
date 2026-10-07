@@ -58,11 +58,26 @@ type OnInsertTextParams = {
   isCompositionEnding?: true;
   // are we on the last character of a multi character input
   lastInMultiIndex?: boolean;
+  // false when replaying each character from one multi-character steno stroke
+  countStenoStroke?: boolean;
 };
 
 export async function onInsertText(options: OnInsertTextParams): Promise<void> {
-  const { now, lastInMultiIndex, isCompositionEnding } = options;
+  const {
+    now,
+    lastInMultiIndex,
+    isCompositionEnding,
+    countStenoStroke = true,
+  } = options;
   const { inputValue } = getInputElementValue();
+
+  if (
+    StenoState.isEnabled() &&
+    countStenoStroke &&
+    options.data.trim() !== ""
+  ) {
+    StenoState.recordStrokeAttempt(TestState.activeWordIndex);
+  }
 
   if (options.data.length > 1) {
     // remove the entire data from the input value
@@ -78,6 +93,7 @@ export async function onInsertText(options: OnInsertTextParams): Promise<void> {
         ...options,
         data: char,
         lastInMultiIndex: i === options.data.length - 1,
+        countStenoStroke: false,
       });
     }
     return;

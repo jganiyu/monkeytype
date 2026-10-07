@@ -147,9 +147,39 @@ function updateStenoInputAndCaretPosition(): void {
   }
 }
 
+function updateStenoHint(): void {
+  const hintEl = document.querySelector<HTMLElement>("#stenoHint");
+  const activeWord = getActiveWordElement();
+  if (hintEl === null || activeWord === null) return;
+
+  const hint = StenoState.getHint(TestState.activeWordIndex);
+  const expectedStrokeCount = StenoState.getExpectedStrokeCount(
+    TestState.activeWordIndex,
+  );
+  const strokeAttempts = StenoState.getStrokeAttempts(
+    TestState.activeWordIndex,
+  );
+  const currentInput = TestInput.input.current + CompositionState.getData();
+  const currentTarget = TestWords.words.getCurrent();
+  const shouldShow =
+    hint !== undefined &&
+    hint !== "" &&
+    strokeAttempts >= expectedStrokeCount &&
+    currentInput !== "" &&
+    currentInput !== currentTarget;
+
+  hintEl.textContent = shouldShow ? hint : "";
+  hintEl.classList.toggle("visible", shouldShow);
+
+  const activeRect = activeWord.getBoundingClientRect();
+  hintEl.style.left = `${Math.max(16, activeRect.left / 2)}px`;
+  hintEl.style.top = `${activeRect.top + activeRect.height / 2}px`;
+}
+
 function updateStenoViewport(): void {
   centerStenoActiveEntry();
   updateStenoInputAndCaretPosition();
+  updateStenoHint();
 }
 
 export function focusWords(force = false): void {
@@ -1873,6 +1903,9 @@ export function beforeTestWordChange(
 export async function afterTestWordChange(
   direction: "forward" | "back",
 ): Promise<void> {
+  if (StenoState.isEnabled()) {
+    StenoState.resetStrokeAttempts(TestState.activeWordIndex);
+  }
   updateActiveElement({
     direction,
   });

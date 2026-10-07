@@ -1886,6 +1886,25 @@ body.stenoPractice.stenoSession {
     justify-self: center !important;
   }
 
+  #stenoHint {
+    color: var(--main-color);
+    font-size: 1.2rem;
+    line-height: 1.2;
+    opacity: 0;
+    pointer-events: none;
+    position: fixed;
+    text-align: center;
+    transform: translate(-50%, -50%);
+    transition: opacity 0.12s ease;
+    white-space: pre-wrap;
+    width: min(16rem, 35vw);
+    z-index: 2;
+
+    &.visible {
+      opacity: 1;
+    }
+  }
+
   #words {
     align-content: start !important;
     margin-top: 0 !important;

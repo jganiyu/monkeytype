@@ -30,6 +30,11 @@ type Settings = {
   categories: Record<StenoCategoryKey, CategorySettings>;
 };
 
+type PracticeEntry = {
+  text: string;
+  hint: string;
+};
+
 const labels: Record<StenoCategoryKey, string> = {
   briefs: "briefs",
   words: "words",
@@ -55,12 +60,12 @@ const defaultSettings: Settings = {
 
 const storageKey = "stenoPracticeSettings";
 
-let activeEntries: string[] = [];
+let activeEntries: PracticeEntry[] = [];
 let bound = false;
 let starting = false;
 
 export function getActiveEntries(): string[] {
-  return activeEntries;
+  return activeEntries.map((entry) => entry.text);
 }
 
 export function getCategoryLabel(key: StenoCategoryKey): string {
@@ -94,11 +99,17 @@ function writeSettings(settings: Settings): void {
   localStorage.setItem(storageKey, JSON.stringify(settings));
 }
 
-function getLines(text: string): string[] {
+function getLines(text: string): PracticeEntry[] {
   return text
     .split(/\r?\n/g)
-    .map((line) => line.trim())
-    .filter((line) => line !== "");
+    .map((line) => {
+      const [entry = "", ...hintParts] = line.split("\t");
+      return {
+        text: entry.trim(),
+        hint: hintParts.join("\t").trim(),
+      };
+    })
+    .filter((entry) => entry.text !== "");
 }
 
 function shuffle<T>(array: T[]): T[] {
@@ -110,7 +121,10 @@ function shuffle<T>(array: T[]): T[] {
   return ret;
 }
 
-function applyPercent(entries: string[], percent: number): string[] {
+function applyPercent(
+  entries: PracticeEntry[],
+  percent: number,
+): PracticeEntry[] {
   const normalizedPercent = Math.max(0, Math.min(100, percent));
   if (normalizedPercent === 100) return entries;
   return entries.slice(
@@ -130,8 +144,9 @@ function getPercentFromInput(key: StenoCategoryKey, fallback: number): number {
   return Math.max(0, Math.min(100, percent));
 }
 
-function buildEntries(settings: Settings): string[] {
+function buildEntries(settings: Settings): PracticeEntry[] {
   const categoryStarts = new Map<number, string>();
+  const hints = new Map<number, string>();
   let nextIndex = 0;
   const grouped = categoryKeys.flatMap((key) => {
     const category = settings.categories[key];
@@ -142,14 +157,29 @@ function buildEntries(settings: Settings): string[] {
     entries = applyPercent(entries, category.percent);
 
     if (entries.length > 0) categoryStarts.set(nextIndex, labels[key]);
+    entries.forEach((entry, index) => {
+      if (entry.hint !== "") hints.set(nextIndex + index, entry.hint);
+    });
     nextIndex += entries.length;
     return entries;
   });
 
-  StenoState.setCategoryStarts(
-    settings.masterRandomize ? new Map<number, string>() : categoryStarts,
+  if (!settings.masterRandomize) {
+    StenoState.setCategoryStarts(categoryStarts);
+    StenoState.setHints(hints);
+    return grouped;
+  }
+
+  const randomized = shuffle(grouped);
+  StenoState.setCategoryStarts(new Map<number, string>());
+  StenoState.setHints(
+    new Map(
+      randomized.flatMap((entry, index) =>
+        entry.hint === "" ? [] : [[index, entry.hint]],
+      ),
+    ),
   );
-  return settings.masterRandomize ? shuffle(grouped) : grouped;
+  return randomized;
 }
 
 function applySettings(): void {
@@ -157,11 +187,14 @@ function applySettings(): void {
   activeEntries = buildEntries(settings);
 
   if (activeEntries.length === 0) {
-    activeEntries = ["Paste entries on the steno content page"];
+    activeEntries = [
+      { text: "Paste entries on the steno content page", hint: "" },
+    ];
+    StenoState.setHints(new Map());
   }
 
   StenoState.setEntryCount(activeEntries.length);
-  CustomText.setText(activeEntries);
+  CustomText.setText(activeEntries.map((entry) => entry.text));
   CustomText.setMode("repeat");
   CustomText.setLimitMode("word");
   CustomText.setLimitValue(activeEntries.length);
