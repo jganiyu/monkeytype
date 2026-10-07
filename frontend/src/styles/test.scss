@@ -1418,8 +1418,17 @@ body.stenoPractice {
     z-index: 2;
 
     button {
+      display: grid;
+      grid-template-columns: 1.25rem 1fr;
+      justify-content: start;
+      min-width: 6.5rem;
+      text-align: left;
       color: var(--sub-color);
       font-size: 0.75rem;
+
+      i {
+        justify-self: center;
+      }
     }
   }
 
@@ -1462,8 +1471,16 @@ body.stenoPractice {
     }
 
     button {
+      display: grid;
+      grid-template-columns: 1.25rem 1fr;
+      min-width: 5.75rem;
       justify-self: start;
+      text-align: left;
       color: var(--sub-color);
+
+      i {
+        justify-self: center;
+      }
     }
   }
 
