@@ -1863,6 +1863,16 @@ body.stenoPractice {
     .wrapper {
       align-self: center;
     }
+
+    .loginTip {
+      display: none;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
   }
 }
 

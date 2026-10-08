@@ -1089,7 +1089,12 @@ export async function update(
     CustomTextState.isCustomTextLong() ?? false,
   );
 
-  if (Config.alwaysShowWordsHistory && canQuickRestart && !GlarsesMode.get()) {
+  if (
+    (Config.alwaysShowWordsHistory ||
+      document.body.classList.contains("stenoPractice")) &&
+    canQuickRestart &&
+    !GlarsesMode.get()
+  ) {
     void TestUI.toggleResultWords(true);
   }
   AdController.updateFooterAndVerticalAds(true);

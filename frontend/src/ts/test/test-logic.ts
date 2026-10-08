@@ -1439,6 +1439,14 @@ $(".pageTest").on("click", "#restartTestButtonWithSameWordset", () => {
   });
 });
 
+$(".pageTest").on("click", "#stenoMissedWordsButton", () => {
+  if (!PractiseWords.init("words", false)) return;
+  ManualRestart.set();
+  restart({
+    practiseMissed: true,
+  });
+});
+
 $(".pageTest").on("click", "#testConfig .mode .textButton", (e) => {
   if (TestState.testRestarting) return;
   if ($(e.currentTarget).hasClass("active")) return;
