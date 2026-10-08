@@ -1429,6 +1429,10 @@ $(".pageTest").on("click", "#nextTestButton", () => {
 });
 
 $(".pageTest").on("click", "#restartTestButtonWithSameWordset", () => {
+  if (document.body.classList.contains("stenoPractice")) {
+    document.dispatchEvent(new CustomEvent("stenoRestartFromContent"));
+    return;
+  }
   if (Config.mode === "zen") {
     Notifications.add("Repeat test disabled in zen mode");
     return;

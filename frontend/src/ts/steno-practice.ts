@@ -367,7 +367,7 @@ function showSession(): void {
   document.body.classList.remove("stenoSetup");
 }
 
-function startSession(): void {
+function runContentSession(): void {
   if (starting) return;
   starting = true;
   PractiseWords.resetBefore();
@@ -381,7 +381,7 @@ function startSession(): void {
 }
 
 function restartSession(): void {
-  TestLogic.restart({ noAnim: true });
+  runContentSession();
 }
 
 function returnToContent(): void {
@@ -419,15 +419,14 @@ function bind(): void {
   updateThemeLabels();
   syncMissedControls();
 
-  const startButton = document.querySelector("#stenoStart");
-  startButton?.addEventListener("pointerdown", startSession);
-  startButton?.addEventListener("mousedown", startSession);
-  startButton?.addEventListener("click", startSession);
-
-  const restartButton = document.querySelector("#stenoRestart");
-  restartButton?.addEventListener("pointerdown", restartSession);
-  restartButton?.addEventListener("mousedown", restartSession);
-  restartButton?.addEventListener("click", restartSession);
+  document.addEventListener("stenoRestartFromContent", runContentSession);
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (target.closest("#stenoStart, #stenoRestart")) {
+      restartSession();
+    }
+  });
 
   document.querySelectorAll(".stenoTheme").forEach((button) => {
     button.addEventListener("pointerdown", showThemeSelector);
