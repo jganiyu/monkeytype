@@ -96,6 +96,7 @@ export async function onInsertText(options: OnInsertTextParams): Promise<void> {
         countStenoStroke: false,
       });
     }
+    markStenoMissIfNeeded();
     return;
   }
 
@@ -193,8 +194,11 @@ export async function onInsertText(options: OnInsertTextParams): Promise<void> {
   TestInput.pushKeypressWord(wordIndex);
   if (!correct) {
     TestInput.incrementKeypressErrors();
-    TestInput.pushMissedWord(TestWords.words.getCurrent());
+    if (!StenoState.isEnabled()) {
+      TestInput.pushMissedWord(TestWords.words.getCurrent());
+    }
   }
+  if (lastInMultiOrSingle) markStenoMissIfNeeded();
   if (Config.keymapMode === "react") {
     void KeymapEvent.flash(data, correct);
   }
@@ -309,6 +313,29 @@ export async function onInsertText(options: OnInsertTextParams): Promise<void> {
 
   if (lastInMultiOrSingle) {
     TestUI.afterTestTextInput(correct, increasedWordIndex, visualInputOverride);
+  }
+}
+
+function markStenoMissIfNeeded(): void {
+  if (!StenoState.isEnabled()) return;
+
+  const wordIndex = TestState.activeWordIndex;
+  const currentInput = TestInput.input.current;
+  const currentWord = TestWords.words.getCurrent();
+  if (
+    currentInput === "" ||
+    currentInput === currentWord ||
+    currentWord.startsWith(currentInput)
+  ) {
+    return;
+  }
+
+  const expectedStrokeCount = StenoState.getExpectedStrokeCount(wordIndex);
+  const strokeAttempts = StenoState.getStrokeAttempts(wordIndex);
+  if (strokeAttempts < expectedStrokeCount) return;
+
+  if (StenoState.markMissedEntry(wordIndex)) {
+    TestInput.pushMissedWord(currentWord);
   }
 }
 

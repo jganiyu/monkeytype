@@ -6,6 +6,7 @@ let categoryStarts = new Map<number, string>();
 let entryCount = 0;
 let hints = new Map<number, string>();
 let strokeAttempts = new Map<number, number>();
+let missedEntries = new Set<number>();
 
 export function setCategoryStarts(starts: Map<number, string>): void {
   categoryStarts = starts;
@@ -46,4 +47,14 @@ export function getStrokeAttempts(index: number): number {
 
 export function resetStrokeAttempts(index: number): void {
   strokeAttempts.delete(index);
+}
+
+export function markMissedEntry(index: number): boolean {
+  if (missedEntries.has(index)) return false;
+  missedEntries.add(index);
+  return true;
+}
+
+export function resetMissedEntries(): void {
+  missedEntries = new Set();
 }

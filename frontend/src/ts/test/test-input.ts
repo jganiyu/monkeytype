@@ -1,6 +1,7 @@
 import { lastElementFromArray } from "../utils/arrays";
 import { mean, roundTo2 } from "@monkeytype/util/numbers";
 import * as TestState from "./test-state";
+import * as StenoState from "../steno-state";
 import Config from "../config";
 import { getInputElementValue } from "../input/input-element";
 
@@ -543,6 +544,7 @@ export function restart(): void {
   };
   currentBurstStart = 0;
   missedWords = {};
+  StenoState.resetMissedEntries();
   accuracy = {
     correct: 0,
     incorrect: 0,
