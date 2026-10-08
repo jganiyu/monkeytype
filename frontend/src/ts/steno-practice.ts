@@ -4,6 +4,7 @@ import * as TestLogic from "./test/test-logic";
 import * as TestState from "./test/test-state";
 import * as StenoState from "./steno-state";
 import * as Commandline from "./commandline/commandline";
+import * as ConfigEvent from "./observables/config-event";
 import { onDOMReady } from "./utils/dom";
 export { isEnabled } from "./steno-state";
 
@@ -71,6 +72,16 @@ export function getActiveEntries(): string[] {
 
 export function getCategoryLabel(key: StenoCategoryKey): string {
   return labels[key];
+}
+
+function formatThemeName(theme: string): string {
+  return theme.replace(/_/g, " ");
+}
+
+function updateThemeLabels(): void {
+  document.querySelectorAll(".stenoThemeLabel").forEach((label) => {
+    label.textContent = formatThemeName(Config.theme);
+  });
 }
 
 function readSettings(): Settings {
@@ -354,6 +365,7 @@ function bind(): void {
   const settings = readSettings();
   syncControlsFromSettings(settings);
   applySettings();
+  updateThemeLabels();
 
   const startButton = document.querySelector("#stenoStart");
   startButton?.addEventListener("pointerdown", startSession);
@@ -404,3 +416,7 @@ export function sync(): void {
 }
 
 onDOMReady(bind);
+
+ConfigEvent.subscribe(({ key }) => {
+  if (key === "theme") updateThemeLabels();
+});
