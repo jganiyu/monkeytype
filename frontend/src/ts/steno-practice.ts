@@ -2,7 +2,9 @@ import Config, { setConfig } from "./config";
 import * as CustomText from "./test/custom-text";
 import * as TestLogic from "./test/test-logic";
 import * as TestState from "./test/test-state";
+import * as ManualRestart from "./test/manual-restart-tracker";
 import * as StenoState from "./steno-state";
+import * as PractiseWords from "./test/practise-words";
 import * as Commandline from "./commandline/commandline";
 import * as ConfigEvent from "./observables/config-event";
 import { onDOMReady } from "./utils/dom";
@@ -82,6 +84,54 @@ function updateThemeLabels(): void {
   document.querySelectorAll(".stenoThemeLabel").forEach((label) => {
     label.textContent = formatThemeName(Config.theme);
   });
+}
+
+function syncMissedControls(): void {
+  const input = document.querySelector<HTMLInputElement>(
+    "#stenoMissedOccurrences",
+  );
+  if (input === null) return;
+  input.value = `${PractiseWords.getStenoMissedOccurrences()}`;
+}
+
+function applyMissedOccurrencesFromUi(): void {
+  const input = document.querySelector<HTMLInputElement>(
+    "#stenoMissedOccurrences",
+  );
+  if (input === null) return;
+
+  const currentValue = PractiseWords.getStenoMissedOccurrences();
+  const nextValue = Number.parseInt(input.value, 10);
+  if (Number.isNaN(nextValue)) {
+    input.value = `${currentValue}`;
+    return;
+  }
+  if (nextValue === currentValue) return;
+
+  PractiseWords.setStenoMissedOccurrences(nextValue);
+  const normalizedValue = `${PractiseWords.getStenoMissedOccurrences()}`;
+  input.value = normalizedValue;
+
+  if (PractiseWords.rebuildStenoMissedPractice()) {
+    ManualRestart.set();
+    TestLogic.restart({
+      practiseMissed: true,
+      noAnim: true,
+    });
+  }
+}
+
+function updateMissedOccurrences(count: number): void {
+  PractiseWords.setStenoMissedOccurrences(count);
+  syncMissedControls();
+
+  if (PractiseWords.rebuildStenoMissedPractice()) {
+    ManualRestart.set();
+    TestLogic.restart({
+      practiseMissed: true,
+      noAnim: true,
+    });
+  }
 }
 
 function readSettings(): Settings {
@@ -320,6 +370,7 @@ function showSession(): void {
 function startSession(): void {
   if (starting) return;
   starting = true;
+  PractiseWords.resetBefore();
   saveFromUi();
   showSession();
   setControlsFrozen(false);
@@ -366,6 +417,7 @@ function bind(): void {
   syncControlsFromSettings(settings);
   applySettings();
   updateThemeLabels();
+  syncMissedControls();
 
   const startButton = document.querySelector("#stenoStart");
   startButton?.addEventListener("pointerdown", startSession);
@@ -391,6 +443,51 @@ function bind(): void {
   document
     .querySelector<HTMLTextAreaElement>("#wordsInput")
     ?.addEventListener("keydown", focusSessionRestart, { capture: true });
+
+  document.addEventListener("input", (event) => {
+    if (event.target instanceof HTMLInputElement) {
+      if (event.target.id === "stenoMissedOccurrences") {
+        applyMissedOccurrencesFromUi();
+      }
+    }
+  });
+  document.addEventListener("change", (event) => {
+    if (event.target instanceof HTMLInputElement) {
+      if (event.target.id === "stenoMissedOccurrences") {
+        applyMissedOccurrencesFromUi();
+      }
+    }
+  });
+  document.addEventListener("keyup", (event) => {
+    if (event.target instanceof HTMLInputElement) {
+      if (event.target.id === "stenoMissedOccurrences") {
+        window.setTimeout(applyMissedOccurrencesFromUi, 0);
+      }
+    }
+  });
+  document.addEventListener("pointerup", (event) => {
+    if (event.target instanceof HTMLInputElement) {
+      if (event.target.id === "stenoMissedOccurrences") {
+        window.setTimeout(applyMissedOccurrencesFromUi, 0);
+      }
+    }
+  });
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+
+    if (target.closest("#stenoMissedDecrease")) {
+      updateMissedOccurrences(PractiseWords.getStenoMissedOccurrences() - 1);
+    }
+    if (target.closest("#stenoMissedIncrease")) {
+      updateMissedOccurrences(PractiseWords.getStenoMissedOccurrences() + 1);
+    }
+  });
+  window.setInterval(() => {
+    if (document.body.classList.contains("stenoMissedPractice")) {
+      applyMissedOccurrencesFromUi();
+    }
+  }, 250);
 
   document.addEventListener("input", (event) => {
     const target = event.target;

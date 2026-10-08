@@ -4,6 +4,7 @@ import Config, { setConfig } from "../config";
 import * as CustomText from "./custom-text";
 import * as TestInput from "./test-input";
 import * as ConfigEvent from "../observables/config-event";
+import * as StenoState from "../steno-state";
 import { setCustomTextName } from "../states/custom-text-name";
 import { Mode } from "@monkeytype/schemas/shared";
 import { CustomTextSettings } from "@monkeytype/schemas/results";
@@ -15,6 +16,11 @@ type Before = {
   customText: CustomTextSettings | null;
 };
 
+type InitOptions = {
+  occurrencesPerWord?: number;
+  steno?: boolean;
+};
+
 export const before: Before = {
   mode: null,
   punctuation: null,
@@ -22,9 +28,54 @@ export const before: Before = {
   customText: null,
 };
 
+let stenoMissedOccurrences = 1;
+let active = false;
+let stenoMissedBaseWords: string[] = [];
+
+function syncStenoMissedClass(): void {
+  document.body.classList.toggle("stenoMissedPractice", active);
+}
+
+export function isActive(): boolean {
+  return active;
+}
+
+export function getStenoMissedOccurrences(): number {
+  return stenoMissedOccurrences;
+}
+
+export function setStenoMissedOccurrences(count: number): void {
+  if (Number.isNaN(count)) return;
+  stenoMissedOccurrences = Math.max(1, Math.min(20, count));
+  if (document.body.classList.contains("stenoMissedPractice")) active = true;
+}
+
+function buildStenoMissedText(): string[] {
+  return stenoMissedBaseWords.flatMap((word) =>
+    Array.from({ length: stenoMissedOccurrences }, () => word),
+  );
+}
+
+export function rebuildStenoMissedPractice(): boolean {
+  if (!active && !document.body.classList.contains("stenoMissedPractice")) {
+    return false;
+  }
+  if (stenoMissedBaseWords.length === 0) return false;
+  const text = buildStenoMissedText();
+  CustomText.setText(text);
+  CustomText.setLimitMode("word");
+  CustomText.setMode("repeat");
+  CustomText.setLimitValue(text.length);
+  StenoState.setEntryCount(text.length);
+  StenoState.setCategoryStarts(new Map([[0, "missed words"]]));
+  StenoState.setHints(new Map());
+  return true;
+}
+
 export function init(
   missed: "off" | "words" | "biwords",
   slow: boolean,
+  options: InitOptions = {},
 ): boolean {
   if (Config.mode === "zen") return false;
   let limit;
@@ -118,14 +169,15 @@ export function init(
   }
 
   const newCustomText: string[] = [];
+  const occurrencesPerWord = options.occurrencesPerWord;
   sortableMissedWords.forEach((missed) => {
-    for (let i = 0; i < missed[1]; i++) {
+    for (let i = 0; i < (occurrencesPerWord ?? missed[1]); i++) {
       newCustomText.push(missed[0]);
     }
   });
 
   sortableMissedBiwords.forEach((missedBiwords) => {
-    for (let i = 0; i < missedBiwords[2]; i++) {
+    for (let i = 0; i < (occurrencesPerWord ?? missedBiwords[2]); i++) {
       if (missedBiwords[1] !== "") {
         newCustomText.push(missedBiwords[1] + " " + missedBiwords[0]);
       } else {
@@ -149,18 +201,24 @@ export function init(
     customText = CustomText.getData();
   }
 
+  active = options.steno === true;
   setConfig("mode", "custom", {
     nosave: true,
   });
+  if (options.steno === true && missed === "words" && !slow) {
+    stenoMissedBaseWords = sortableMissedWords.map(([word]) => word);
+  }
   CustomText.setPipeDelimiter(true);
   CustomText.setText(newCustomText);
-  CustomText.setLimitMode("section");
-  CustomText.setMode("shuffle");
+  CustomText.setLimitMode(options.steno === true ? "word" : "section");
+  CustomText.setMode(options.steno === true ? "repeat" : "shuffle");
   CustomText.setLimitValue(
-    (sortableSlowWords.length +
-      sortableMissedWords.length +
-      sortableMissedBiwords.length) *
-      5,
+    options.steno === true
+      ? newCustomText.length
+      : (sortableSlowWords.length +
+          sortableMissedWords.length +
+          sortableMissedBiwords.length) *
+          5,
   );
 
   setCustomTextName("practise", undefined);
@@ -169,6 +227,12 @@ export function init(
   before.punctuation = punctuation;
   before.numbers = numbers;
   before.customText = customText;
+  if (active) {
+    StenoState.setEntryCount(newCustomText.length);
+    StenoState.setCategoryStarts(new Map([[0, "missed words"]]));
+    StenoState.setHints(new Map());
+  }
+  syncStenoMissedClass();
 
   return true;
 }
@@ -178,8 +242,11 @@ export function resetBefore(): void {
   before.punctuation = null;
   before.numbers = null;
   before.customText = null;
+  active = false;
+  stenoMissedBaseWords = [];
+  syncStenoMissedClass();
 }
 
 ConfigEvent.subscribe(({ key }) => {
-  if (key === "mode") resetBefore();
+  if (key === "mode" && !active) resetBefore();
 });

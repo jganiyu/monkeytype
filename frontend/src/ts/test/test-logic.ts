@@ -1440,9 +1440,24 @@ $(".pageTest").on("click", "#restartTestButtonWithSameWordset", () => {
 });
 
 $(".pageTest").on("click", "#stenoMissedWordsButton", () => {
-  if (!PractiseWords.init("words", false)) return;
+  if (
+    !PractiseWords.init("words", false, {
+      occurrencesPerWord: PractiseWords.getStenoMissedOccurrences(),
+      steno: true,
+    })
+  ) {
+    return;
+  }
   ManualRestart.set();
   restart({
+    practiseMissed: true,
+  });
+});
+
+$(".pageTest").on("click", "#stenoRedoMissedButton", () => {
+  ManualRestart.set();
+  restart({
+    withSameWordset: true,
     practiseMissed: true,
   });
 });

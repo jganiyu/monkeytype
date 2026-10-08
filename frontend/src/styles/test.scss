@@ -1432,6 +1432,10 @@ body.stenoPractice {
     }
   }
 
+  #stenoMissedControls {
+    display: none;
+  }
+
   #stenoContent {
     display: grid;
     gap: 0.75rem;
@@ -1583,7 +1587,8 @@ body.stenoPractice {
 
   &.stenoSetup {
     #typingTest,
-    #stenoSessionActions {
+    #stenoSessionActions,
+    #stenoMissedControls {
       display: none;
     }
   }
@@ -1599,6 +1604,50 @@ body.stenoPractice {
       right: 3rem;
       bottom: 5.5rem;
       gap: 0.35rem;
+    }
+
+    &.stenoMissedPractice #stenoMissedControls {
+      position: fixed;
+      right: 3rem;
+      bottom: 13.25rem;
+      display: grid;
+      color: var(--sub-color);
+      font-size: 0.75rem;
+      z-index: 2;
+
+      label {
+        display: grid;
+        gap: 0.35rem;
+        background: var(--sub-alt-color);
+        border-radius: var(--roundness);
+        padding: 0.75rem;
+      }
+
+      .stenoMissedStepper {
+        display: grid;
+        grid-template-columns: 1.75rem 5rem 1.75rem;
+        align-items: center;
+        gap: 0.35rem;
+      }
+
+      input {
+        width: 100%;
+        background: var(--bg-color);
+        color: var(--text-color);
+        border: none;
+        border-radius: var(--roundness);
+        padding: 0.25rem 0.4rem;
+        -moz-appearance: auto;
+        -webkit-appearance: auto;
+        appearance: auto;
+      }
+
+      button {
+        display: grid;
+        place-items: center;
+        min-height: 1.75rem;
+        padding: 0;
+      }
     }
 
     #typingTest {
@@ -1872,6 +1921,12 @@ body.stenoPractice {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
+    }
+  }
+
+  &:not(.stenoMissedPractice) {
+    #stenoRedoMissedButton {
+      display: none;
     }
   }
 }
