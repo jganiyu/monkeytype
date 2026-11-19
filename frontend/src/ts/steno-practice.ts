@@ -370,11 +370,12 @@ function showSession(): void {
 function runContentSession(): void {
   if (starting) return;
   starting = true;
+  ManualRestart.set();
   PractiseWords.resetBefore();
   saveFromUi();
   showSession();
   setControlsFrozen(false);
-  TestLogic.restart({ noAnim: true });
+  TestLogic.restart({ forceNewWordset: true, noAnim: true });
   setTimeout(() => {
     starting = false;
   }, 250);

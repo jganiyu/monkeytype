@@ -80,7 +80,7 @@ export function init(
   if (Config.mode === "zen") return false;
   let limit;
   if ((missed === "words" && !slow) || (missed === "off" && slow)) {
-    limit = 20;
+    limit = missed === "words" && !slow ? Number.MAX_SAFE_INTEGER : 20;
   } else {
     // (biwords) or (missed-words and slow) or (biwords and slow)
     limit = 10;

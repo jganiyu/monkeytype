@@ -124,6 +124,7 @@ export function startTest(now: number): boolean {
 
 type RestartOptions = {
   withSameWordset?: boolean;
+  forceNewWordset?: boolean;
   nosave?: boolean;
   event?: JQuery.KeyDownEvent;
   practiseMissed?: boolean;
@@ -139,6 +140,7 @@ type RestartOptions = {
 export function restart(options = {} as RestartOptions): void {
   const defaultOptions = {
     withSameWordset: false,
+    forceNewWordset: false,
     practiseMissed: false,
     noAnim: false,
     nosave: false,
@@ -196,7 +198,7 @@ export function restart(options = {} as RestartOptions): void {
   }
 
   if (TestState.isActive) {
-    if (TestState.isRepeated) {
+    if (TestState.isRepeated && !options.forceNewWordset) {
       options.withSameWordset = true;
     }
 
